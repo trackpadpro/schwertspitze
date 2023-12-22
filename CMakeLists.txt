@@ -19,27 +19,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_subdirectory(src)
 
-set(BUILD_SHARED_LIBS TRUE)
-set(SFML_STATIC_LIBRARIES TRUE)
-
-find_package(SFML 2.5 COMPONENTS graphics network audio REQUIRED)
-
-include_directories(
-	src/include
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-	sfml-graphics
-	sfml-network
-	sfml-audio
-)
-
-if(HOST_SERVER)
-	target_link_libraries(server PRIVATE
-		sfml-network
-	)
-endif()
-
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
@@ -47,4 +26,48 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	if(HOST_SERVER)
 		target_link_libraries(server PRIVATE Threads::Threads)
 	endif()
+#elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Windows)
+	
+#elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Darwin)
+	
+#else()
+#	message(WARNING "unrecognized system")
 endif()
+
+set(BUILD_SHARED_LIBS TRUE)
+#set(SFML_STATIC_LIBRARIES TRUE)
+
+#find_package(SFML 2.5 COMPONENTS graphics network audio REQUIRED)
+
+include_directories(
+	src/include
+	sdk/public/steam
+)
+
+target_link_directories(${PROJECT_NAME} PUBLIC
+	sdk/redistributable_bin
+	#sdk/redistributable_bin/win64
+)
+
+add_library(steam_api64 SHARED IMPORTED)
+set_target_properties(steam_api64 PROPERTIES 
+	IMPORTED_LOCATION "D:/dev/schwertspitze/sdk/redistributable_bin/win64/steam_api64.dll"
+)
+set_target_properties(steam_api64 PROPERTIES 
+	IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/win64/steam_api64.lib
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	#sfml-graphics
+	#sfml-network
+	#sfml-audio
+	$<0:steam_api>
+	steam_api64
+	objects
+)
+
+#if(HOST_SERVER)
+#	target_link_libraries(server PRIVATE
+#		sfml-network
+#	)
+#endif()

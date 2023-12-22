@@ -1,4 +1,10 @@
-#include <SFML/Network.hpp>
 #include <vector>
 #include <thread>
 #include <mutex>
+
+int main()
+{
+
+
+    return 0;
+}
