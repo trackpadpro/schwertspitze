@@ -45,20 +45,44 @@ include_directories(
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-	$<$<PLATFORM_ID:Windows,MSYS,CYGWIN>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin>
-	$<$<PLATFORM_ID:Windows,MSYS,CYGWIN>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/win64>
+	$<$<PLATFORM_ID:Windows,MSYS>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin>
+	$<$<PLATFORM_ID:Windows,MSYS>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/win64>
 	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/linux32>
 	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/linux64>
 	$<$<PLATFORM_ID:Darwin>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/osx>
+	$<$<PLATFORM_ID:Windows,MSYS>:${CMAKE_SOURCE_DIR}/sdk/public/steam/lib/win32>
+	$<$<PLATFORM_ID:Windows,MSYS>:${CMAKE_SOURCE_DIR}/sdk/public/steam/lib/win64>
+	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/public/steam/lib/linux32>
+	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/public/steam/lib/linux64>
+	$<$<PLATFORM_ID:Darwin>:${CMAKE_SOURCE_DIR}/sdk/public/steam/lib/osx>
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	#sfml-graphics
 	#sfml-network
 	#sfml-audio
-	$<IF:$<AND:$<PLATFORM_ID:Windows,MSYS,CYGWIN>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>,steam_api64,steam_api>
+	steam_api$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
+	sdkencryptedappticket$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	objects
 )
+
+if(WIN32 OR MSYS)
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		file(COPY sdk/redistributable_bin/win64/steam_api64.dll
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+		file(COPY sdk/public/steam/lib/win64/sdkencryptedappticket64.dll
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+	else()
+		file(COPY sdk/redistributable_bin/steam_api.dll
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+		file(COPY sdk/public/steam/lib/win32/sdkencryptedappticket.dll
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+	endif()
+endif()
 
 #if(HOST_SERVER)
 #	target_link_libraries(server PRIVATE
