@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.1)
+cmake_minimum_required(VERSION 3.28.1)
 
 project(schwertspitze)
 
@@ -45,24 +45,18 @@ include_directories(
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-	sdk/redistributable_bin
-	#sdk/redistributable_bin/win64
-)
-
-add_library(steam_api64 SHARED IMPORTED)
-set_target_properties(steam_api64 PROPERTIES 
-	IMPORTED_LOCATION "D:/dev/schwertspitze/sdk/redistributable_bin/win64/steam_api64.dll"
-)
-set_target_properties(steam_api64 PROPERTIES 
-	IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/win64/steam_api64.lib
+	$<$<PLATFORM_ID:Windows,MSYS,CYGWIN>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin>
+	$<$<PLATFORM_ID:Windows,MSYS,CYGWIN>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/win64>
+	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/linux32>
+	$<$<PLATFORM_ID:Linux>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/linux64>
+	$<$<PLATFORM_ID:Darwin>:${CMAKE_SOURCE_DIR}/sdk/redistributable_bin/osx>
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
 	#sfml-graphics
 	#sfml-network
 	#sfml-audio
-	$<0:steam_api>
-	steam_api64
+	$<IF:$<AND:$<PLATFORM_ID:Windows,MSYS,CYGWIN>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>,steam_api64,steam_api>
 	objects
 )
 
