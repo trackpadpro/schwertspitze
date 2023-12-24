@@ -19,25 +19,33 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_subdirectory(src)
 
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
-	set(THREADS_PREFER_PTHREAD_FLAG ON)
-	find_package(Threads REQUIRED)
-	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-	if(HOST_SERVER)
-		target_link_libraries(server PRIVATE Threads::Threads)
-	endif()
-#elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Windows)
-	
-#elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Darwin)
-	
-#else()
-#	message(WARNING "unrecognized system")
-endif()
-
 set(BUILD_SHARED_LIBS TRUE)
 #set(SFML_STATIC_LIBRARIES TRUE)
 
 #find_package(SFML 2.5 COMPONENTS graphics network audio REQUIRED)
+
+if(NOT EXISTS sdk)
+	if(NOT EXISTS steamworks_sdk.zip)
+		message(STATUS "Retrieving Steamworks SDK")
+		file(DOWNLOAD 
+			https://partner.steamgames.com/downloads/steamworks_sdk.zip 
+			steamworks_sdk.zip
+			INACTIVITY_TIMEOUT 30
+			SHOW_PROGRESS
+			TLS_VERIFY ON
+		)
+	endif()
+	if(EXISTS steamworks_sdk.zip)
+		message(STATUS "Extracting Steamworks SDK")
+		file(ARCHIVE_EXTRACT 
+			INPUT steamworks_sdk.zip
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+		file(REMOVE steamworks_sdk.zip)
+	else()
+		message(WARNING "SDK download failed; confirm that you are logged in to Steamworks")
+	endif()
+endif()
 
 include_directories(
 	src/include
@@ -66,6 +74,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	objects
 )
 
+#if(HOST_SERVER)
+#	target_link_libraries(server PRIVATE
+#		sfml-network
+#	)
+#endif()
+
 if(WIN32 OR MSYS)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		file(COPY sdk/redistributable_bin/win64/steam_api64.dll
@@ -82,10 +96,11 @@ if(WIN32 OR MSYS)
 			DESTINATION ${CMAKE_SOURCE_DIR}
 		)
 	endif()
+elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(Threads REQUIRED)
+	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+	if(HOST_SERVER)
+		target_link_libraries(server PRIVATE Threads::Threads)
+	endif()
 endif()
-
-#if(HOST_SERVER)
-#	target_link_libraries(server PRIVATE
-#		sfml-network
-#	)
-#endif()
