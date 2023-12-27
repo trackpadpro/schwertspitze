@@ -3,14 +3,12 @@ cmake_minimum_required(VERSION 3.28.1)
 project(schwertspitze)
 
 add_executable(${PROJECT_NAME}
-	src/client.cpp
+	src/main.cpp
 )
 
-option(HOST_SERVER "Toggle build for server executable" OFF)
-if(HOST_SERVER)
-	add_executable(server
-		src/server.cpp
-	)
+option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)
+if(DEDICATED_SERVER)
+	add_compile_definitions(DEDICATED_SERVER)
 endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
@@ -72,13 +70,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	steam_api$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	sdkencryptedappticket$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	objects
+	server
+	client
 )
-
-#if(HOST_SERVER)
-#	target_link_libraries(server PRIVATE
-#		sfml-network
-#	)
-#endif()
 
 if(WIN32 OR MSYS)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -100,7 +94,4 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-	if(HOST_SERVER)
-		target_link_libraries(server PRIVATE Threads::Threads)
-	endif()
 endif()
