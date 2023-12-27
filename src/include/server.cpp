@@ -2,9 +2,5 @@
 #include <thread>
 #include <mutex>
 
-int main()
-{
+#include "server.h"
 
-
-    return 0;
-}

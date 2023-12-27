@@ -69,9 +69,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	#sfml-audio
 	steam_api$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	sdkencryptedappticket$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
-	objects
-	server
-	client
+	schwertspitze_object
+	schwertspitze_server
+	schwertspitze_client
+	schwertspitze_menu
 )
 
 if(WIN32 OR MSYS)

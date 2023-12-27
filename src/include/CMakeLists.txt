@@ -1,3 +1,4 @@
-add_library(objects objects.cpp)
-add_library(server server.cpp)
-add_library(client client.cpp)
+add_library(schwertspitze_object object.cpp)
+add_library(schwertspitze_server server.cpp)
+add_library(schwertspitze_client client.cpp)
+add_library(schwertspitze_menu menu.cpp)
