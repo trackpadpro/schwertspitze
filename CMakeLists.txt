@@ -18,9 +18,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 add_subdirectory(src)
 
 set(BUILD_SHARED_LIBS TRUE)
-#set(SFML_STATIC_LIBRARIES TRUE)
+set(OPENGL_LIBRARY_DIR C:/msys64/mingw64/freeglut/lib)
 
-#find_package(SFML 2.5 COMPONENTS graphics network audio REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
 
 if(NOT EXISTS sdk)
 	if(NOT EXISTS steamworks_sdk.zip)
@@ -48,6 +50,7 @@ endif()
 include_directories(
 	src/include
 	sdk/public/steam
+	${GLEW_INCLUDE_DIRS}
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
@@ -64,15 +67,16 @@ target_link_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-	#sfml-graphics
-	#sfml-network
-	#sfml-audio
 	steam_api$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	sdkencryptedappticket$<$<AND:$<PLATFORM_ID:Windows,MSYS>,$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>>:64>
 	schwertspitze_object
 	schwertspitze_server
 	schwertspitze_client
 	schwertspitze_menu
+	schwertspitze_input
+	${OPENGL_LIBRARY}
+	glfw
+	GLEW::GLEW
 )
 
 if(WIN32 OR MSYS)
@@ -95,4 +99,27 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+endif()
+
+if(NOT EXISTS data/config.cfg)
+	if(NOT EXISTS steamworks_sdk.zip)
+		message(STATUS "Retrieving Steamworks SDK")
+		file(DOWNLOAD 
+			https://partner.steamgames.com/downloads/steamworks_sdk.zip 
+			steamworks_sdk.zip
+			INACTIVITY_TIMEOUT 30
+			SHOW_PROGRESS
+			TLS_VERIFY ON
+		)
+	endif()
+	if(EXISTS steamworks_sdk.zip)
+		message(STATUS "Extracting Steamworks SDK")
+		file(ARCHIVE_EXTRACT 
+			INPUT steamworks_sdk.zip
+			DESTINATION ${CMAKE_SOURCE_DIR}
+		)
+		file(REMOVE steamworks_sdk.zip)
+	else()
+		message(WARNING "SDK download failed; confirm that you are logged in to Steamworks")
+	endif()
 endif()
