@@ -100,26 +100,3 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 endif()
-
-if(NOT EXISTS data/config.cfg)
-	if(NOT EXISTS steamworks_sdk.zip)
-		message(STATUS "Retrieving Steamworks SDK")
-		file(DOWNLOAD 
-			https://partner.steamgames.com/downloads/steamworks_sdk.zip 
-			steamworks_sdk.zip
-			INACTIVITY_TIMEOUT 30
-			SHOW_PROGRESS
-			TLS_VERIFY ON
-		)
-	endif()
-	if(EXISTS steamworks_sdk.zip)
-		message(STATUS "Extracting Steamworks SDK")
-		file(ARCHIVE_EXTRACT 
-			INPUT steamworks_sdk.zip
-			DESTINATION ${CMAKE_SOURCE_DIR}
-		)
-		file(REMOVE steamworks_sdk.zip)
-	else()
-		message(WARNING "SDK download failed; confirm that you are logged in to Steamworks")
-	endif()
-endif()
