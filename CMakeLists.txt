@@ -6,19 +6,11 @@ add_executable(${PROJECT_NAME}
 	src/main.cpp
 )
 
-option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)
-if(DEDICATED_SERVER)
-	add_compile_definitions(DEDICATED_SERVER)
-endif()
-
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}>
 )
 
 add_subdirectory(src)
-
-set(BUILD_SHARED_LIBS TRUE)
-set(OPENGL_LIBRARY_DIR C:/msys64/mingw64/freeglut/lib)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -99,4 +91,9 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+endif()
+
+option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)
+if(DEDICATED_SERVER)
+	add_compile_definitions(DEDICATED_SERVER)
 endif()
