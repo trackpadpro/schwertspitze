@@ -12,6 +12,17 @@
         public:
             Input(GLFWwindow* summoner, const std::string& cfg);
             char fetch();
+            /*  ~           escape
+                X           attack
+                w           up
+                a           left
+                s           down
+                d           right
+                q           left+up
+                z           left+down
+                e           right+up
+                c           right+down
+                uppercase   +attack     */
         private:
             GLFWwindow* window;
             std::map<char, std::vector<short>> keyring;
@@ -20,6 +31,6 @@
                 w   up
                 a   left
                 s   down
-                d   right  */
+                d   right   */
     };
 #endif

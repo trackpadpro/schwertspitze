@@ -4,6 +4,7 @@
 #include "server.h"
 
 #if !defined(DEDICATED_SERVER)
+    #include <GL/glew.h>
     #include <GLFW/glfw3.h>
     #include "client.h"
     #include "input.h"
@@ -15,9 +16,11 @@
 int main()
 {
     #if !defined(DEDICATED_SERVER)
-        glfwInit();
-
         GLFWwindow* window;
+        
+        if(!glfwInit())
+            return -1;
+
         const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
         glfwWindowHint(GLFW_SAMPLES, 4);
@@ -27,10 +30,24 @@ int main()
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         window = glfwCreateWindow(mode->width, mode->height, "Schwertspitze", NULL, NULL);
+
+        if(window==NULL)
+        {
+            glfwTerminate();
+            return -1;
+        }
+
         glfwMakeContextCurrent(window);
 
+        glewExperimental = true;
+
+        if(glewInit()!=GLEW_OK)
+        {
+            glfwTerminate();
+            return -1;
+        }
+
         Input controls(window, "./data/config.cfg");
-        
         bool gameActive = true;
 
         while(gameActive)
@@ -44,7 +61,7 @@ int main()
                     break;
             }
             
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         glfwTerminate();
