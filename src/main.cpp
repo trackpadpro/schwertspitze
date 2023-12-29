@@ -1,10 +1,10 @@
 #include <chrono>
 #include <thread>
-#include <GLFW/glfw3.h>
 #include "steam_api.h"
 #include "server.h"
 
 #if !defined(DEDICATED_SERVER)
+    #include <GLFW/glfw3.h>
     #include "client.h"
     #include "input.h"
     #include "menu.h"
