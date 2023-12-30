@@ -12,7 +12,6 @@
     #include "client.h"
     #include "input.h"
     #include "menu.h"
-    #include <iostream>///////////////////
 #else
     #include <iostream>
 #endif
