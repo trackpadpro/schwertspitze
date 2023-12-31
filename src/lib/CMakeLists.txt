@@ -5,6 +5,6 @@ add_library(schwertspitze_menu menu.cpp)
 add_library(schwertspitze_input input.cpp)
 
 include_directories(
-	${CMAKE_SOURCE_DIR}/src/include
+	${CMAKE_SOURCE_DIR}/src/lib
 	${CMAKE_SOURCE_DIR}/sdk/public/steam
 )

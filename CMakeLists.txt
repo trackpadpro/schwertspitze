@@ -40,7 +40,7 @@ if(NOT EXISTS sdk)
 endif()
 
 include_directories(
-	src/include
+	src/lib
 	sdk/public/steam
 	${GLEW_INCLUDE_DIRS}
 )

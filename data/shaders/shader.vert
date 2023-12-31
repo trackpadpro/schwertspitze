@@ -1,7 +1,7 @@
 #version 330 core
 
-layout (location = 0) in vec2 vertPos;
-layout (location = 1) in vec3 vertCol;
+layout (location = 0) in vec2 vertPos;  //[x, y]
+layout (location = 1) in vec3 vertCol;  //[r, g, b]
 
 out vec4 vertexColor;
 

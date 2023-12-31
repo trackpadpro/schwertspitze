@@ -1,9 +1,12 @@
 #include <sstream>
 #include <fstream>
+#include <vector>
 #include <string>
 #include <chrono>
 #include <thread>
+#include <memory>
 #include "steam_api.h"
+#include "object.h"
 #include "server.h"
 
 #if !defined(DEDICATED_SERVER)
@@ -51,6 +54,8 @@ int main()
         }
 
         Input controls(window, "./data/config.cfg");
+
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         GLuint programGL;
 
@@ -146,9 +151,14 @@ int main()
             glDeleteShader(shaderFragment);
         }
 
+        GLuint vao, vbo;
+        std::vector<std::shared_ptr<Object>> objects;
+
+        glUseProgram(programGL);
+
         bool gameActive = true;
 
-        while(gameActive)
+        while(gameActive&&glfwWindowShouldClose(window)==0)
         {
             switch(controls.fetch())
             {
@@ -158,6 +168,10 @@ int main()
                 default:
                     break;
             }
+
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glfwSwapBuffers(window);
             
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
