@@ -150,13 +150,31 @@ int main()
             glDeleteShader(shaderVertex);
             glDeleteShader(shaderFragment);
         }
-
+        
         GLuint vao, vbo;
-        std::vector<std::shared_ptr<Object>> objects;
+
+        glGenVertexArrays(1, &vao);
+	    glBindVertexArray(vao);
+
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5*sizeof(GLfloat), (void*)(2*sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
 
         glUseProgram(programGL);
 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        std::vector<std::shared_ptr<Object>> objects;
+        std::vector<GLfloat> vertices;
         bool gameActive = true;
+
+        std::shared_ptr<Player> player = std::make_shared<Player>(0, 0);
+        objects.push_back(player);
 
         while(gameActive&&glfwWindowShouldClose(window)==0)
         {
@@ -165,17 +183,40 @@ int main()
                 case '~':
                     gameActive = false;
                     break;
+                case 'X':
+                    objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
                 default:
                     break;
             }
 
+            vertices.clear();
+
+            for(auto& obj: objects)
+            {
+                obj->update();
+                
+                std::vector<GLfloat> objVertices(obj->getVertices());
+                
+                vertices.insert(vertices.end(), objVertices.begin(), objVertices.end()); //append_range()
+            }
+
             glClear(GL_COLOR_BUFFER_BIT);
 
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
+	        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            glBindVertexArray(vao);
+            glDrawArrays(GL_TRIANGLES, 0, vertices.size()/5);
+            glBindVertexArray(0);
+
             glfwSwapBuffers(window);
-            
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+            //std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
+        glDeleteBuffers(1, &vbo);
+        glDeleteVertexArrays(1, &vao);
         glDeleteProgram(programGL);
         glfwTerminate();
     #else
