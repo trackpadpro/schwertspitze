@@ -46,7 +46,7 @@ Input::Input(GLFWwindow* summoner, const std::string& cfg)
 
 char Input::fetch()
 {
-    char commandBit;
+    char commandBit = '\0';
     bool attack = false, up = false, left = false, down = false, right = false;
 
     glfwPollEvents();

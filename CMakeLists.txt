@@ -10,6 +10,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_SOURCE_DIR}>
 )
 
+set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+
 add_subdirectory(src)
 
 find_package(OpenGL REQUIRED)
