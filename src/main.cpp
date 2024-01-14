@@ -5,9 +5,10 @@
 #include <chrono>
 #include <thread>
 #include <memory>
+#include <atomic>
+#include <mutex>
 #include "steam_api.h"
 #include "object.h"
-#include "server.h"
 
 #if !defined(DEDICATED_SERVER)
     #include <GL/glew.h>
@@ -17,15 +18,31 @@
     #include "menu.h"
 #else
     #include <iostream>
+    #include "server.h"
 #endif
+
+#define STEAM_APP_ID 480
+
+std::vector<std::shared_ptr<Object>> objects, objectsDynamic;
+std::vector<GLfloat> vertices;
+std::mutex mutObj, mutVert;
+std::atomic<bool> gameActive = true;
+
+void threadUpdateObj();
 
 int main()
 {
     #if !defined(DEDICATED_SERVER)
         GLFWwindow* window;
-        
-        if(!glfwInit())
-            return -1;
+
+        if(SteamAPI_RestartAppIfNecessary(STEAM_APP_ID))
+            return 1;
+
+        if(!SteamAPI_Init()||!glfwInit())
+        {
+            SteamAPI_Shutdown();
+            return 1;
+        }
 
         const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
@@ -39,8 +56,9 @@ int main()
 
         if(window==NULL)
         {
+            SteamAPI_Shutdown();
             glfwTerminate();
-            return -1;
+            return 1;
         }
 
         glfwMakeContextCurrent(window);
@@ -49,8 +67,9 @@ int main()
 
         if(glewInit()!=GLEW_OK)
         {
+            SteamAPI_Shutdown();
             glfwTerminate();
-            return -1;
+            return 1;
         }
 
         Input controls(window, "./data/config.cfg");
@@ -59,6 +78,7 @@ int main()
 
         GLuint programGL;
 
+        //Bind shaders to program
         {
             GLuint shaderVertex = glCreateShader(GL_VERTEX_SHADER);
             GLuint shaderFragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -78,8 +98,9 @@ int main()
             }
             else
             {
+                SteamAPI_Shutdown();
                 glfwTerminate();
-                return -1;
+                return 1;
             }
 
             const char* shaderPtr = shader.c_str();
@@ -92,8 +113,9 @@ int main()
 
             if(success==GL_FALSE)
             {
+                SteamAPI_Shutdown();
                 glfwTerminate();
-                return -1;
+                return 1;
             }
 
             shaderFile.open("./data/shaders/shader.frag", std::ios::in);
@@ -110,8 +132,9 @@ int main()
             }
             else
             {
+                SteamAPI_Shutdown();
                 glfwTerminate();
-                return -1;
+                return 1;
             }
 
             shaderPtr = shader.c_str();
@@ -124,8 +147,9 @@ int main()
 
             if(success==GL_FALSE)
             {
+                SteamAPI_Shutdown();
                 glfwTerminate();
-                return -1;
+                return 1;
             }
 
             programGL = glCreateProgram();
@@ -139,9 +163,10 @@ int main()
 
             if(success==GL_FALSE)
             {
+                SteamAPI_Shutdown();
                 glDeleteProgram(programGL);
                 glfwTerminate();
-                return -1;
+                return 1;
             }
 
             glDetachShader(programGL, shaderVertex);
@@ -169,12 +194,12 @@ int main()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
-        std::vector<std::shared_ptr<Object>> objects;
-        std::vector<GLfloat> vertices;
-        bool gameActive = true;
-
         std::shared_ptr<Player> player = std::make_shared<Player>(0, 0);
         objects.push_back(player);
+        objectsDynamic.push_back(player);
+
+        std::vector<std::thread> threads;
+        threads.emplace_back(std::thread(threadUpdateObj));
 
         while(gameActive&&glfwWindowShouldClose(window)==0)
         {
@@ -182,23 +207,27 @@ int main()
             {
                 case '~':
                     gameActive = false;
+
                     break;
                 case 'X':
-                    objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
+                    
+                    break;
+                case 'A':
+                    //objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
+                    {
+                        std::shared_ptr<Character> CPU = std::make_shared<Character>(-0.2, 0.2);
+                        mutObj.lock();
+                        objects.push_back(CPU);
+                        objectsDynamic.push_back(CPU);
+                        mutObj.unlock();
+
+                        break;
+                    }
                 default:
                     break;
             }
 
-            vertices.clear();
-
-            for(auto& obj: objects)
-            {
-                obj->update();
-                
-                std::vector<GLfloat> objVertices(obj->getVertices());
-                
-                vertices.insert(vertices.end(), objVertices.begin(), objVertices.end()); //append_range()
-            }
+            mutVert.lock();
 
             glClear(GL_COLOR_BUFFER_BIT);
 
@@ -210,11 +239,21 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, vertices.size()/5);
             glBindVertexArray(0);
 
+            mutVert.unlock();
+
             glfwSwapBuffers(window);
 
             //std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
+        gameActive = false; //Handle possibility of loop ending due to window closing
+
+        //Join threads
+        for(auto& thread: threads)
+            thread.join();
+
+        //Free up resources
+        SteamAPI_Shutdown();
         glDeleteBuffers(1, &vbo);
         glDeleteVertexArrays(1, &vao);
         glDeleteProgram(programGL);
@@ -224,4 +263,33 @@ int main()
     #endif
 
     return 0;
+}
+
+void threadUpdateObj()
+{
+    while(gameActive)
+    {
+        mutObj.lock();
+
+        for(auto& obj: objectsDynamic)
+        {
+            obj->update();
+        }
+
+        mutVert.lock();
+
+        vertices.clear();
+
+        for(auto& obj: objects)
+        {
+            std::vector<GLfloat> objVertices(obj->getVertices());
+            
+            vertices.insert(vertices.end(), objVertices.begin(), objVertices.end()); //append_range()
+        }
+
+        mutVert.unlock();
+        mutObj.unlock();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
 }
