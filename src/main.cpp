@@ -15,7 +15,6 @@
     #include <GLFW/glfw3.h>
     #include "client.h"
     #include "input.h"
-    #include "menu.h"
 #else
     #include <iostream>
     #include "server.h"
@@ -198,33 +197,65 @@ int main()
         objects.push_back(player);
         objectsDynamic.push_back(player);
 
+        std::shared_ptr<Menu> menu = std::make_shared<Menu>();
+        objects.push_back(menu);
+        objectsDynamic.push_back(menu);
+
         std::vector<std::thread> threads;
         threads.emplace_back(std::thread(threadUpdateObj));
 
+        bool menuClosed = false;
+        char controlBit = '\0';
+
         while(gameActive&&glfwWindowShouldClose(window)==0)
         {
-            switch(controls.fetch())
+            controlBit = controls.fetch();
+            
+            if(menuClosed&&controlBit!='~')
             {
-                case '~':
-                    gameActive = false;
-
-                    break;
-                case 'X':
-                    
-                    break;
-                case 'A':
-                    //objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
-                    {
-                        std::shared_ptr<Character> CPU = std::make_shared<Character>(-0.2, 0.2);
-                        mutObj.lock();
-                        objects.push_back(CPU);
-                        objectsDynamic.push_back(CPU);
-                        mutObj.unlock();
-
+                player->input(controlBit);
+            }
+            else
+            {
+                switch(menu->input(controlBit))
+                {
+                    case '~':
+                        gameActive = false;
                         break;
-                    }
-                default:
-                    break;
+                    case 'p':
+                        menuClosed = true;
+                        break;
+                    case 'f':
+                        if(glfwGetWindowMonitor(window)==NULL)
+                            glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
+                        else
+                            glfwSetWindowMonitor(window, NULL, 0, 0, mode->width, mode->height, 0);
+                        break;
+                    default:
+                        break;
+                }
+                    
+                /*{
+                    case '~':
+                        gameActive = false;
+                        break;
+                    case 'X':
+                        
+                        break;
+                    case 'A':
+                        //objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
+                        {
+                            std::shared_ptr<Character> CPU = std::make_shared<Character>(-0.2, 0.2);
+                            mutObj.lock();
+                            objects.push_back(CPU);
+                            objectsDynamic.push_back(CPU);
+                            mutObj.unlock();
+                            
+                        }
+                        break;
+                    default:
+                        break;
+                }*/
             }
 
             mutVert.lock();
@@ -269,6 +300,7 @@ void threadUpdateObj()
 {
     while(gameActive)
     {
+        //Prevent other threads from adding or removing from vector during iteration
         mutObj.lock();
 
         for(auto& obj: objectsDynamic)
@@ -276,6 +308,7 @@ void threadUpdateObj()
             obj->update();
         }
 
+        //Prevent other threads from reading vector during assembly
         mutVert.lock();
 
         vertices.clear();
@@ -290,6 +323,6 @@ void threadUpdateObj()
         mutVert.unlock();
         mutObj.unlock();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }

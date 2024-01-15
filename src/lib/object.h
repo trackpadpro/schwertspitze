@@ -2,6 +2,7 @@
     #define SCHWERTSPITZE_OBJECT_H
 
     #include <vector>
+    #include <mutex>
     #include <GL/glew.h>
 
     class Object
@@ -13,6 +14,7 @@
             virtual void update();
         protected:
             std::vector<GLfloat> vertices;
+            std::mutex mutObj;
     };
 
     class Character: public Object
@@ -26,5 +28,32 @@
     {
         public:
             using Character::Character;
+            void input(const char& commandBit);
+    };
+
+    enum menuOption
+    {
+        mPlay = 0,
+        mKeybinds = 10,
+        mKeybindSelection = 11,
+        mFullscreen = 20,
+        mVolume = 30,
+        mVolumeSlider = 31,
+        mExit = 40,
+        mExitConfirm = 41,
+        mHidden = 50,
+    };
+
+    class Menu: public Object
+    {
+        public:
+            Menu();
+            void update();
+            char input(const char& commandBit);
+            /*  ~   exit
+                p   play
+                f   fullscreen  */
+        private:
+            menuOption state;
     };
 #endif

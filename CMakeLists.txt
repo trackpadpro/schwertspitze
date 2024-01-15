@@ -66,7 +66,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	schwertspitze_object
 	schwertspitze_server
 	schwertspitze_client
-	schwertspitze_menu
 	schwertspitze_input
 	${OPENGL_LIBRARY}
 	glfw
