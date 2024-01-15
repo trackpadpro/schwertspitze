@@ -205,6 +205,7 @@ int main()
 
         bool menuClosed = false;
         char controlBit = '\0';
+        glfwSetTime(0);
 
         while(gameActive&&glfwWindowShouldClose(window)==0)
         {
@@ -213,8 +214,10 @@ int main()
             if(menuClosed&&controlBit!='~')
             {
                 player->input(controlBit);
+
+                glfwSetTime(0);
             }
-            else
+            else if(glfwGetTime()>=0.1) //Prevent inhuman menu navigation
             {
                 switch(menu->input(controlBit))
                 {
@@ -227,7 +230,7 @@ int main()
                     case 'f':
                         if(glfwGetWindowMonitor(window)==NULL)
                         {
-                            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 30); //mode->refreshRate
+                            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
                         }
                         else
                         {
@@ -241,28 +244,8 @@ int main()
                     default:
                         break;
                 }
-                    
-                /*{
-                    case '~':
-                        gameActive = false;
-                        break;
-                    case 'X':
-                        
-                        break;
-                    case 'A':
-                        //objects.emplace_back(std::make_shared<Character>(-0.2, 0.2));
-                        {
-                            std::shared_ptr<Character> CPU = std::make_shared<Character>(-0.2, 0.2);
-                            mutObj.lock();
-                            objects.push_back(CPU);
-                            objectsDynamic.push_back(CPU);
-                            mutObj.unlock();
-                            
-                        }
-                        break;
-                    default:
-                        break;
-                }*/
+
+                glfwSetTime(0);
             }
 
             mutVert.lock();
@@ -280,8 +263,7 @@ int main()
             mutVert.unlock();
 
             glfwSwapBuffers(window);
-
-            //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            glfwPollEvents();
         }
 
         gameActive = false; //Handle possibility of loop ending due to window closing

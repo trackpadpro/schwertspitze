@@ -2,7 +2,7 @@
 
 Object::Object()
 {
-    
+    needsUpdate = false;
 }
 
 Object::Object(const std::vector<GLfloat>& objVertices) //[x, y, r, g, b]*[3 vertices]*[# triangles]
@@ -11,6 +11,7 @@ Object::Object(const std::vector<GLfloat>& objVertices) //[x, y, r, g, b]*[3 ver
         return;
     
     vertices = objVertices;
+    needsUpdate = false;
 }
 
 std::vector<GLfloat> Object::getVertices()
@@ -26,7 +27,14 @@ std::vector<GLfloat> Object::getVertices()
 
 void Object::update()
 {
+    if(needsUpdate)
+    {
+        mutObj.lock();
+        
+        
 
+        mutObj.unlock();
+    }
 }
 
 Character::Character(const GLfloat& x, const GLfloat& y)
@@ -36,16 +44,21 @@ Character::Character(const GLfloat& x, const GLfloat& y)
         x+0.5f, y+0.5f, 1.0f, 0.0f, 0.5f,
         x-0.5f, y+0.5f, 0.0f, 0.5f, 0.0f
     };
+
+    needsUpdate = true;
 }
 
 void Character::update()
 {
-    mutObj.lock();
-    
-    vertices[6]*=0.995;
-    vertices[7]*=0.998;
+    if(needsUpdate)
+    {
+        mutObj.lock();
+        
+        vertices[6]*=0.995;
+        vertices[7]*=0.998;
 
-    mutObj.unlock();
+        mutObj.unlock();
+    }
 }
 
 void Player::input(const char& commandBit)
@@ -70,63 +83,68 @@ Menu::Menu()
         -0.95f, +0.75f, 1.0f, 0.0f, 0.5f,
         -0.9f, +0.7f, 0.0f, 0.5f, 0.0f
     };
+
+    needsUpdate = false;
 }
 
 void Menu::update()
 {
-    mutObj.lock();
-    
-    switch(state)
+    if(needsUpdate)
     {
-        case mPlay:
-            vertices = {
-                -0.9f, +0.8f, 0.0f, 0.5f, 0.5f,
-                -0.95f, +0.75f, 1.0f, 0.0f, 0.5f,
-                -0.9f, +0.7f, 0.0f, 0.5f, 0.0f
-            };
-            break;
-        case mKeybinds:
-            vertices = {
-                -0.9f, +0.75f, 0.0f, 0.5f, 0.5f,
-                -0.95f, +0.7f, 1.0f, 0.0f, 0.5f,
-                -0.9f, +0.65f, 0.0f, 0.5f, 0.0f
-            };
-            break;
-        case mKeybindSelection:
-            break;
-        case mFullscreen:
-            vertices = {
-                -0.9f, +0.7f, 0.0f, 0.5f, 0.5f,
-                -0.95f, +0.65f, 1.0f, 0.0f, 0.5f,
-                -0.9f, +0.6f, 0.0f, 0.5f, 0.0f
-            };
-            break;
-        case mVolume:
-            vertices = {
-                -0.9f, +0.65f, 0.0f, 0.5f, 0.5f,
-                -0.95f, +0.6f, 1.0f, 0.0f, 0.5f,
-                -0.9f, +0.55f, 0.0f, 0.5f, 0.0f
-            };
-            break;
-        case mVolumeSlider:
-            break;
-        case mHidden:
-            vertices = {};
-            break;
-        case mExit:
-            vertices = {
-                -0.9f, +0.6f, 0.0f, 0.5f, 0.5f,
-                -0.95f, +0.55f, 1.0f, 0.0f, 0.5f,
-                -0.9f, +0.5f, 0.0f, 0.5f, 0.0f
-            };
-            break;
-        case mExitConfirm:
-            break;
-        default:
-            break;
-    }
+        mutObj.lock();
+    
+        switch(state)
+        {
+            case mPlay:
+                vertices = {
+                    -0.9f, +0.8f, 0.0f, 0.5f, 0.5f,
+                    -0.95f, +0.75f, 1.0f, 0.0f, 0.5f,
+                    -0.9f, +0.7f, 0.0f, 0.5f, 0.0f
+                };
+                break;
+            case mKeybinds:
+                vertices = {
+                    -0.9f, +0.75f, 0.0f, 0.5f, 0.5f,
+                    -0.95f, +0.7f, 1.0f, 0.0f, 0.5f,
+                    -0.9f, +0.65f, 0.0f, 0.5f, 0.0f
+                };
+                break;
+            case mKeybindSelection:
+                break;
+            case mFullscreen:
+                vertices = {
+                    -0.9f, +0.7f, 0.0f, 0.5f, 0.5f,
+                    -0.95f, +0.65f, 1.0f, 0.0f, 0.5f,
+                    -0.9f, +0.6f, 0.0f, 0.5f, 0.0f
+                };
+                break;
+            case mVolume:
+                vertices = {
+                    -0.9f, +0.65f, 0.0f, 0.5f, 0.5f,
+                    -0.95f, +0.6f, 1.0f, 0.0f, 0.5f,
+                    -0.9f, +0.55f, 0.0f, 0.5f, 0.0f
+                };
+                break;
+            case mVolumeSlider:
+                break;
+            case mHidden:
+                vertices = {};
+                break;
+            case mExit:
+                vertices = {
+                    -0.9f, +0.6f, 0.0f, 0.5f, 0.5f,
+                    -0.95f, +0.55f, 1.0f, 0.0f, 0.5f,
+                    -0.9f, +0.5f, 0.0f, 0.5f, 0.0f
+                };
+                break;
+            case mExitConfirm:
+                break;
+            default:
+                break;
+        }
 
-    mutObj.unlock();
+        mutObj.unlock();
+    }
 }
 
 char Menu::input(const char& commandBit)
@@ -134,6 +152,8 @@ char Menu::input(const char& commandBit)
     char menuBit = '\0';
 
     mutObj.lock();
+
+    menuOption prev = state;
     
     switch(state)
     {
@@ -151,7 +171,8 @@ char Menu::input(const char& commandBit)
                     break;
                 case 'X':
                     state = mHidden;
-                    return 'p';
+                    menuBit = 'p';
+                    break;
                 default:
                     break;
             }
@@ -208,7 +229,8 @@ char Menu::input(const char& commandBit)
                     state = mHidden;
                     break;
                 case 'X':
-                    return 'f';
+                    menuBit = 'f';
+                    break;
                 default:
                     break;
             }
@@ -277,7 +299,8 @@ char Menu::input(const char& commandBit)
                     state = mExit;
                     break;
                 case 'X':
-                    return '~';
+                    menuBit = '~';
+                    break;
                 default:
                     break;
             }
@@ -296,6 +319,12 @@ char Menu::input(const char& commandBit)
             break;
     }
 
+    //Only update menu when state changes
+    if(prev==state)
+        needsUpdate = false;
+    else
+        needsUpdate = true;
+    
     mutObj.unlock();
     
     return menuBit;

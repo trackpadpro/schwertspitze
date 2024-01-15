@@ -48,8 +48,6 @@ char Input::fetch()
 {
     char commandBit = '\0';
     bool attack = false, up = false, left = false, down = false, right = false;
-
-    glfwPollEvents();
     
     for(auto& sensor: keyring['0'])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)

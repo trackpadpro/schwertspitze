@@ -2,6 +2,7 @@
     #define SCHWERTSPITZE_OBJECT_H
 
     #include <vector>
+    #include <atomic>
     #include <mutex>
     #include <GL/glew.h>
 
@@ -14,6 +15,7 @@
             virtual void update();
         protected:
             std::vector<GLfloat> vertices;
+            std::atomic<bool> needsUpdate;
             std::mutex mutObj;
     };
 

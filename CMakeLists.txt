@@ -72,9 +72,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	GLEW::GLEW
 )
 
-option(APP_ID "Steam App ID" 480)
-add_compile_definitions(STEAM_APP_ID APP_ID)
-
 if(NOT EXISTS steam_appid.txt)
 	file(COPY sdk/steamworksexample/release/steam_appid.txt
 		DESTINATION ${CMAKE_SOURCE_DIR}
@@ -101,6 +98,11 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+endif()
+
+option(DEV_APP_ID "Use Spacewar Steam App ID" ON)
+if(DEV_APP_ID)
+	add_compile_definitions(STEAM_APP_ID=480)
 endif()
 
 option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)
