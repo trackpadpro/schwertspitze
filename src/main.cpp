@@ -44,6 +44,7 @@ int main()
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
+        glfwSwapInterval(1);
         glfwWindowHint(GLFW_SAMPLES, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -60,7 +61,7 @@ int main()
         }
 
         glfwMakeContextCurrent(window);
-
+        
         glewExperimental = true;
 
         if(glewInit()!=GLEW_OK)
@@ -205,6 +206,7 @@ int main()
 
         bool menuClosed = false;
         char controlBit = '\0';
+        size_t vboSize = 0;
         glfwSetTime(0);
 
         while(gameActive&&glfwWindowShouldClose(window)==0)
@@ -217,7 +219,7 @@ int main()
 
                 glfwSetTime(0);
             }
-            else if(glfwGetTime()>=0.1) //Prevent inhuman menu navigation
+            else if(glfwGetTime()>=0.08) //Prevent inhuman menu navigation
             {
                 switch(menu->input(controlBit))
                 {
@@ -253,7 +255,23 @@ int main()
             glClear(GL_COLOR_BUFFER_BIT);
 
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLfloat), vertices.data(), GL_DYNAMIC_DRAW);
+            if(vboSize<vertices.size()*sizeof(GLfloat))
+            {
+                //Increase size of buffer as necessary
+                vboSize = vertices.size()*sizeof(GLfloat);
+                glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_DYNAMIC_DRAW);
+            }
+            else if(vboSize>=2*vertices.size()*sizeof(GLfloat))
+            {
+                //Decrease size of buffer as convenient
+                vboSize /= 1.3;
+                glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_DYNAMIC_DRAW);
+            }
+            else
+            {
+                //Avoid reallocating memory when unnecessary
+                glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size()*sizeof(GLfloat), vertices.data());
+            }
 	        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             glBindVertexArray(vao);
