@@ -72,6 +72,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	GLEW::GLEW
 )
 
+option(APP_ID "Steam App ID" 480)
+add_compile_definitions(STEAM_APP_ID APP_ID)
+
+if(NOT EXISTS steam_appid.txt)
+	file(COPY sdk/steamworksexample/release/steam_appid.txt
+		DESTINATION ${CMAKE_SOURCE_DIR}
+	)
+endif()
+
 if(WIN32 OR MSYS)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		file(COPY sdk/redistributable_bin/win64/steam_api64.dll

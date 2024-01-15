@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <vector>
@@ -16,11 +17,8 @@
     #include "client.h"
     #include "input.h"
 #else
-    #include <iostream>
     #include "server.h"
 #endif
-
-#define STEAM_APP_ID 480
 
 std::vector<std::shared_ptr<Object>> objects, objectsDynamic;
 std::vector<GLfloat> vertices;
@@ -43,7 +41,8 @@ int main()
             return 1;
         }
 
-        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
         glfwWindowHint(GLFW_SAMPLES, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -227,9 +226,17 @@ int main()
                         break;
                     case 'f':
                         if(glfwGetWindowMonitor(window)==NULL)
-                            glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, mode->refreshRate);
+                        {
+                            glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, 30); //mode->refreshRate
+                        }
                         else
-                            glfwSetWindowMonitor(window, NULL, 0, 0, mode->width, mode->height, 0);
+                        {
+                            int xpos, ypos;
+                            monitor = glfwGetWindowMonitor(window);
+                            glfwGetMonitorPos(monitor, &xpos, &ypos);
+
+                            glfwSetWindowMonitor(window, NULL, xpos, ypos, mode->width, mode->height, 0);
+                        }
                         break;
                     default:
                         break;
