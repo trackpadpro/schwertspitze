@@ -14,6 +14,7 @@
 #if !defined(DEDICATED_SERVER)
     #include <GL/glew.h>
     #include <GLFW/glfw3.h>
+    #include <glm/glm.hpp>
     #include "client.h"
     #include "input.h"
 #else
@@ -44,7 +45,7 @@ int main()
         GLFWmonitor* monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-        glfwSwapInterval(1);
+        glfwSwapInterval(1); //Enable VSync
         glfwWindowHint(GLFW_SAMPLES, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -174,7 +175,7 @@ int main()
             glDeleteShader(shaderVertex);
             glDeleteShader(shaderFragment);
         }
-        
+
         GLuint vao, vbo;
 
         glGenVertexArrays(1, &vao);
@@ -204,32 +205,46 @@ int main()
         std::vector<std::thread> threads;
         threads.emplace_back(std::thread(threadUpdateObj));
 
+        GLuint aspRatLoc = glGetUniformLocation(programGL, "aspRat");
         bool menuClosed = false;
         char controlBit = '\0';
         size_t vboSize = 0;
+        glm::mat2 aspectRatio;
         glfwSetTime(0);
 
         while(gameActive&&glfwWindowShouldClose(window)==0)
         {
+            aspectRatio[0][0] = 1000/(float)mode->width;
+            aspectRatio[1][1] = 1000/(float)mode->height;
+
+            glUniformMatrix2fv(aspRatLoc, 1, GL_FALSE, &aspectRatio[0][0]);
+            
             controlBit = controls.fetch();
             
-            if(menuClosed&&controlBit!='~')
+            if(menuClosed) //Fix this
             {
                 player->input(controlBit);
 
+                if(controlBit=='~')
+                {
+                    menu->input(controlBit);
+                    
+                    menuClosed = false;
+                }
+
                 glfwSetTime(0);
             }
-            else if(glfwGetTime()>=0.08) //Prevent inhuman menu navigation
+            else if(glfwGetTime()>=0.1) //Prevent inhuman menu navigation
             {
                 switch(menu->input(controlBit))
                 {
-                    case '~':
+                    case '~': //Leave game
                         gameActive = false;
                         break;
-                    case 'p':
+                    case 'p': //Play game
                         menuClosed = true;
                         break;
-                    case 'f':
+                    case 'f': //Toggle fullscreen
                         if(glfwGetWindowMonitor(window)==NULL)
                         {
                             glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
@@ -261,7 +276,7 @@ int main()
                 vboSize = vertices.size()*sizeof(GLfloat);
                 glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_DYNAMIC_DRAW);
             }
-            else if(vboSize>=2*vertices.size()*sizeof(GLfloat))
+            else if(vboSize>2*vertices.size()*sizeof(GLfloat))
             {
                 //Decrease size of buffer as convenient
                 vboSize /= 1.3;

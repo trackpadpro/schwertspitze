@@ -17,12 +17,13 @@
             std::vector<GLfloat> vertices;
             std::atomic<bool> needsUpdate;
             std::mutex mutObj;
+            size_t x, y;
     };
 
     class Character: public Object
     {
         public:
-            Character(const GLfloat& x, const GLfloat& y);
+            Character(const GLfloat& xpos, const GLfloat& ypos);
             virtual void update();
     };
 

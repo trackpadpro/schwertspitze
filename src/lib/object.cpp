@@ -37,8 +37,11 @@ void Object::update()
     }
 }
 
-Character::Character(const GLfloat& x, const GLfloat& y)
+Character::Character(const GLfloat& xpos, const GLfloat& ypos)
 {
+    x = xpos;
+    y = ypos;
+    
     vertices = {
         x-0.5f, y-0.5f, 0.0f, 0.5f, 0.5f,
         x+0.5f, y+0.5f, 1.0f, 0.0f, 0.5f,

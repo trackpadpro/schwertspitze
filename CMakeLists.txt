@@ -17,6 +17,7 @@ add_subdirectory(src)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(glm REQUIRED)
 
 if(NOT EXISTS sdk)
 	if(NOT EXISTS steamworks_sdk.zip)
@@ -70,6 +71,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	${OPENGL_LIBRARY}
 	glfw
 	GLEW::GLEW
+	glm
 )
 
 if(NOT EXISTS steam_appid.txt)
