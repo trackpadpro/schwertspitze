@@ -17,7 +17,7 @@
             std::vector<GLfloat> vertices;
             std::atomic<bool> needsUpdate;
             std::mutex mutObj;
-            size_t x, y;
+            float x, y, dx, dy, ddx, ddy;
     };
 
     class Character: public Object
@@ -58,5 +58,13 @@
                 f   fullscreen  */
         private:
             menuOption state;
+    };
+
+    class Icon: public Object
+    {
+        public:
+
+        private:
+
     };
 #endif

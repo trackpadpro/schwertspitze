@@ -12,6 +12,8 @@ CMake with a build tool
 
 C/C++ compiler
 
+OpenGL, GLEW, GLFW, GLM
+
 Steamworks account or the SDK files (copy either the .zip or the extracted sdk folder into the project folder)
 
 ### Build Commands

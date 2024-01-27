@@ -15,9 +15,10 @@ set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
 add_subdirectory(src)
 
 find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
+find_package(Box2D REQUIRED)
 
 if(NOT EXISTS sdk)
 	if(NOT EXISTS steamworks_sdk.zip)
@@ -69,9 +70,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 	schwertspitze_client
 	schwertspitze_input
 	${OPENGL_LIBRARY}
-	glfw
 	GLEW::GLEW
+	glfw
 	glm
+	Box2D
 )
 
 if(NOT EXISTS steam_appid.txt)

@@ -22,7 +22,7 @@ std::vector<GLfloat> Object::getVertices()
 
     mutObj.unlock();
     
-    return vertices;
+    return objVertices; //Target for future optimization
 }
 
 void Object::update()
@@ -31,7 +31,10 @@ void Object::update()
     {
         mutObj.lock();
         
-        
+        x+=dx;
+        y+=dy;
+        dx+=ddx;
+        dy+=ddy;
 
         mutObj.unlock();
     }
@@ -95,7 +98,7 @@ void Menu::update()
     if(needsUpdate)
     {
         mutObj.lock();
-    
+        
         switch(state)
         {
             case mPlay:
@@ -327,7 +330,7 @@ char Menu::input(const char& commandBit)
         needsUpdate = false;
     else
         needsUpdate = true;
-    
+
     mutObj.unlock();
     
     return menuBit;
