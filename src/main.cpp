@@ -21,6 +21,8 @@ std::vector<std::shared_ptr<Object>> objects, objectsDynamic;
 std::vector<GLfloat> vertices;
 std::mutex mutVert;
 std::atomic<bool> gameActive = true;
+std::shared_ptr<Player> player;
+std::shared_ptr<Menu> menu;
 
 void threadUpdateObj();
 
@@ -197,53 +199,8 @@ int main()
     char controlBit = '\0';
     size_t vboSize = 0;
     glm::mat2 aspectRatio = glm::mat2(1.0f);
-    glfwSetTime(0);
-
-    //Loading screen
-    while(gameActive&&glfwWindowShouldClose(window)==0&&glfwGetTime()<4)
-    {
-        
-        
-        mutVert.lock();
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        if(vboSize<vertices.size()*sizeof(GLfloat))
-        {
-            //Increase size of buffer as necessary
-            vboSize = vertices.size()*sizeof(GLfloat);
-            glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_DYNAMIC_DRAW);
-        }
-        else if(vboSize>2*vertices.size()*sizeof(GLfloat))
-        {
-            //Decrease size of buffer as convenient
-            vboSize /= 1.3;
-            glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_DYNAMIC_DRAW);
-        }
-        else
-        {
-            //Avoid reallocating memory when unnecessary
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size()*sizeof(GLfloat), vertices.data());
-        }
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size()/5);
-        glBindVertexArray(0);
-
-        mutVert.unlock();
-
-        glfwSwapBuffers(window);
-    }
-
-    std::shared_ptr<Player> player = std::make_shared<Player>(0, 0);
-    objects.push_back(player);
-    objectsDynamic.push_back(player);
-
-    std::shared_ptr<Menu> menu = std::make_shared<Menu>();
-    objects.push_back(menu);
-    objectsDynamic.push_back(menu);
+    player = std::make_shared<Player>(0, 0);
+    menu = std::make_shared<Menu>();
 
     glfwSetTime(0);
 
@@ -351,8 +308,53 @@ int main()
 
 void threadUpdateObj()
 {
+    auto unruh = std::chrono::high_resolution_clock::now(); //Timer
+    size_t usElapsed; //Microseconds elapsed per loop
+    std::unique_ptr<b2World> world = std::make_unique<b2World>(b2Vec2(0.0f, -9.81f));
+    
+    //Loading screen for 4 seconds
+    {
+        size_t usElapsedTotal = 0; //Microseconds elapsed during loading screen
+
+        while(gameActive&&usElapsedTotal<=4000000)
+        {
+            usElapsedTotal = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-unruh)).count();
+            usElapsed = usElapsedTotal-usElapsed;
+            
+            for(auto& obj: objectsDynamic)
+            {
+                obj->update();
+            }
+
+            //Prevent other threads from reading vector during assembly
+            mutVert.lock();
+
+            vertices.clear();
+
+            for(auto& obj: objects)
+            {
+                std::vector<GLfloat> objVertices(obj->getVertices());
+                
+                vertices.insert(vertices.end(), objVertices.begin(), objVertices.end()); //append_range()
+            }
+
+            mutVert.unlock();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+
+    objects.push_back(player);
+    objects.push_back(menu);
+    objectsDynamic.push_back(player);
+    objectsDynamic.push_back(menu);
+
+    //Main loop
     while(gameActive)
     {
+        usElapsed = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()-unruh)).count();
+        unruh = std::chrono::high_resolution_clock::now();
+        
         for(auto& obj: objectsDynamic)
         {
             obj->update();

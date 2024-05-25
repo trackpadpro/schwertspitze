@@ -44,7 +44,7 @@
         mVolumeSlider = 31,
         mExit = 40,
         mExitConfirm = 41,
-        mHidden = 50,
+        mHidden = 99,
     };
 
     class Menu: public Object

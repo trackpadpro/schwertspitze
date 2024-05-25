@@ -160,167 +160,79 @@ char Menu::input(const char& commandBit)
     mutObj.lock();
 
     menuOption prev = state;
-    
-    switch(state)
+
+    switch(commandBit)
     {
-        case mPlay:
-            switch(commandBit)
+        case 'w':
+            if(state%10==0&&state>0)
             {
-                case 'w':
-                    state = mExit;
-                    break;
-                case 's':
-                    state = mKeybinds;
-                    break;
-                case '~':
-                    state = mHidden;
-                    break;
-                case 'X':
+                state = (menuOption)(state-10);
+            }
+            else if(state==mPlay)
+            {
+                state = mExit;
+            }
+            else if(state==mVolumeSlider)
+            {
+                //volume up
+            }
+            break;
+        case 's':
+            if(state%10==0&&state<40)
+            {
+                state = (menuOption)(state+10);
+            }
+            else if(state==mExit)
+            {
+                state = mPlay;
+            }
+            else if(state==mVolumeSlider)
+            {
+                //volume down
+            }
+            break;
+        case '~':
+            if(state%10==0&&state<99)
+            {
+                state = mHidden;
+            }
+            else if(state==mHidden)
+            {
+                state = mPlay;
+            }
+            else
+            {
+                state = (menuOption)(state-1);
+            }
+            break;
+        case 'X':
+            switch(state)
+            {
+                case mPlay:
                     state = mHidden;
                     menuBit = 'p';
                     break;
-                default:
-                    break;
-            }
-            break;
-        case mKeybinds:
-            switch(commandBit)
-            {
-                case 'w':
-                    state = mPlay;
-                    break;
-                case 's':
-                    state = mFullscreen;
-                    break;
-                case '~':
-                    state = mHidden;
-                    break;
-                case 'X':
+                case mKeybinds:
                     state = mKeybindSelection;
                     break;
-                default:
-                    break;
-            }
-            break;
-        case mKeybindSelection:
-            switch(commandBit)
-            {
-                //Select command to remap
-                case 'w':
-                    
-                    break;
-                case 's':
-                    
-                    break;
-                case '~':
-                    state = mKeybinds;
-                    break;
-                case 'X':
-                    
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case mFullscreen:
-            switch(commandBit)
-            {
-                case 'w':
-                    state = mKeybinds;
-                    break;
-                case 's':
-                    state = mVolume;
-                    break;
-                case '~':
-                    state = mHidden;
-                    break;
-                case 'X':
+                case mFullscreen:
                     menuBit = 'f';
                     break;
-                default:
-                    break;
-            }
-            break;
-        case mVolume:
-            switch(commandBit)
-            {
-                case 'w':
-                    state = mFullscreen;
-                    break;
-                case 's':
-                    state = mExit;
-                    break;
-                case '~':
-                    state = mHidden;
-                    break;
-                case 'X':
+                case mVolume:
                     state = mVolumeSlider;
                     break;
-                default:
-                    break;
-            }
-            break;
-        case mVolumeSlider:
-            switch(commandBit)
-            {
-                case 'a':
-                    //Decrease volume
-                    break;
-                case 'd':
-                    //Increase volume
-                    break;
-                case '~':
+                case mVolumeSlider:
                     state = mVolume;
                     break;
-                case 'X':
-                    state = mVolume;
-                    break;
-                default:
-                    break;
-            }
-            break;
-        case mExit:
-            switch(commandBit)
-            {
-                case 'w':
-                    state = mVolume;
-                    break;
-                case 's':
-                    state = mPlay;
-                    break;
-                case '~':
-                    state = mHidden;
-                    break;
-                case 'X':
+                case mExit:
                     state = mExitConfirm;
                     break;
-                default:
-                    break;
-            }
-            break;
-        case mExitConfirm:
-            switch(commandBit)
-            {
-                case '~':
-                    state = mExit;
-                    break;
-                case 'X':
+                case mExitConfirm:
                     menuBit = '~';
                     break;
                 default:
                     break;
             }
-            break;
-        case mHidden:
-            switch(commandBit)
-            {
-                case '~':
-                    state = mPlay;
-                    break;
-                default:
-                    break;
-            }
-            break;
         default:
             break;
     }
