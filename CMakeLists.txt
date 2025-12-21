@@ -11,6 +11,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+set(SDK_VER 163)
 
 add_subdirectory(src)
 
@@ -24,20 +25,20 @@ if(NOT EXISTS sdk)
 	if(NOT EXISTS steamworks_sdk.zip)
 		message(STATUS "Retrieving Steamworks SDK")
 		file(DOWNLOAD 
-			https://partner.steamgames.com/downloads/steamworks_sdk.zip 
-			steamworks_sdk.zip
+			https://partner.steamgames.com/downloads/steamworks_sdk_${SDK_VER}.zip 
+			steamworks_sdk_${SDK_VER}.zip
 			INACTIVITY_TIMEOUT 30
 			SHOW_PROGRESS
 			TLS_VERIFY ON
 		)
 	endif()
-	if(EXISTS steamworks_sdk.zip)
+	if(EXISTS steamworks_sdk_${SDK_VER}.zip)
 		message(STATUS "Extracting Steamworks SDK")
 		file(ARCHIVE_EXTRACT 
-			INPUT steamworks_sdk.zip
+			INPUT steamworks_sdk_${SDK_VER}.zip
 			DESTINATION ${CMAKE_SOURCE_DIR}
 		)
-		file(REMOVE steamworks_sdk.zip)
+		file(REMOVE steamworks_sdk_${SDK_VER}.zip)
 	else()
 		message(WARNING "SDK download failed; confirm that you are logged in to Steamworks")
 	endif()
