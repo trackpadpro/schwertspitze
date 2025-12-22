@@ -103,11 +103,20 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+elseif(APPLE)
+	file(COPY sdk/redistributable_bin/osx/libsteam_api.dylib
+		DESTINATION ${CMAKE_SOURCE_DIR}
+	)
+	file(COPY sdk/public/steam/lib/osx/libsdkencryptedappticket.dylib
+		DESTINATION ${CMAKE_SOURCE_DIR}
+	)
 endif()
 
 option(DEV_APP_ID "Use Spacewar Steam App ID" ON)
 if(DEV_APP_ID)
 	add_compile_definitions(STEAM_APP_ID=480)
+else()
+	add_compile_definitions(STEAM_APP_ID=2957540)
 endif()
 
 option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)

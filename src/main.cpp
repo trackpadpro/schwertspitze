@@ -20,7 +20,7 @@
 std::vector<std::shared_ptr<Object>> objects, objectsDynamic;
 std::vector<GLfloat> vertices;
 std::mutex mutVert;
-std::atomic<bool> gameActive = true;
+std::atomic<bool> gameActive;
 std::shared_ptr<Player> player;
 std::shared_ptr<Menu> menu;
 
@@ -29,6 +29,7 @@ void threadUpdateObj();
 int main()
 {
     GLFWwindow* window;
+    gameActive = true;
 
     if(SteamAPI_RestartAppIfNecessary(STEAM_APP_ID))
         return 1;
@@ -310,7 +311,7 @@ void threadUpdateObj()
 {
     auto unruh = std::chrono::high_resolution_clock::now(); //Timer
     size_t usElapsed; //Microseconds elapsed per loop
-    std::unique_ptr<b2World> world = std::make_unique<b2World>(b2Vec2(0.0f, -9.81f));
+    //std::unique_ptr<b2WorldId> world = std::make_unique<b2WorldId>(b2Vec2(0.0f, -9.81f));
     
     //Loading screen for 4 seconds
     {
