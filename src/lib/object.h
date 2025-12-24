@@ -5,6 +5,7 @@
     #include <atomic>
     #include <mutex>
     #include <GL/glew.h>
+    #include "input.h"
 
     class Object
     {
@@ -31,20 +32,23 @@
     {
         public:
             using Character::Character;
-            void input(const char& commandBit);
+            void input(const input::command& commandByte);
     };
+
+    namespace menu
+    {
 
     enum menuOption
     {
-        mPlay = 0,
-        mKeybinds = 10,
-        mKeybindSelection = 11,
-        mFullscreen = 20,
-        mVolume = 30,
-        mVolumeSlider = 31,
-        mExit = 40,
-        mExitConfirm = 41,
-        mHidden = 99,
+        play                = 0x00,
+        keybinds            = 0x10,
+        keybindSelection    = 0x11,
+        fullscreen          = 0x20,
+        volume              = 0x30,
+        volumeSlider        = 0x31,
+        exit                = 0x40,
+        exitConfirm         = 0x41,
+        hidden              = 0xff,
     };
 
     class Menu: public Object
@@ -52,13 +56,12 @@
         public:
             Menu();
             void update();
-            char input(const char& commandBit);
-            /*  ~   exit
-                p   play
-                f   fullscreen  */
+            menuOption input(const input::command& commandByte);
         private:
             menuOption state;
     };
+
+    } //namespace menu
 
     class Icon: public Object
     {

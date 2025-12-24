@@ -1,6 +1,8 @@
 #include <fstream>
-#include <cctype>
 #include "input.h"
+
+namespace input
+{
 
 Input::Input(GLFWwindow* summoner, const std::string& cfg)
 {
@@ -25,17 +27,17 @@ Input::Input(GLFWwindow* summoner, const std::string& cfg)
                 if(controller=="glfw")
                 {
                     if(command=="escape")
-                        keyring['0'].push_back(std::stoi(sensor));
+                        keyring[escape].push_back(std::stoi(sensor));
                     else if(command=="attack")
-                        keyring['1'].push_back(std::stoi(sensor));
+                        keyring[attack].push_back(std::stoi(sensor));
                     else if(command=="up")
-                        keyring['w'].push_back(std::stoi(sensor));
+                        keyring[up].push_back(std::stoi(sensor));
                     else if(command=="left")
-                        keyring['a'].push_back(std::stoi(sensor));
+                        keyring[left].push_back(std::stoi(sensor));
                     else if(command=="down")
-                        keyring['s'].push_back(std::stoi(sensor));
+                        keyring[down].push_back(std::stoi(sensor));
                     else if(command=="right")
-                        keyring['d'].push_back(std::stoi(sensor));
+                        keyring[right].push_back(std::stoi(sensor));
                 }
             }
         }
@@ -44,74 +46,45 @@ Input::Input(GLFWwindow* summoner, const std::string& cfg)
     }
 }
 
-char Input::fetch()
+command Input::fetch()
 {
-    char commandBit = '\0';
-    bool attack = false, up = false, left = false, down = false, right = false;
+    command commandByte = command::none;
     
-    for(auto& sensor: keyring['0'])
+    for(auto& sensor: keyring[escape])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            return '~'; //Esc takes precedence
-
-    for(auto& sensor: keyring['1'])
+            return escape; //Esc takes precedence
+    for(auto& sensor: keyring[attack])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            attack = true;
-
-    for(auto& sensor: keyring['w'])
+        {
+            commandByte = (command)(commandByte | attack);
+            break;
+        }
+    for(auto& sensor: keyring[up])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            up = true;
-
-    for(auto& sensor: keyring['a'])
+        {
+            commandByte = (command)(commandByte | up);
+            break;
+        }
+    for(auto& sensor: keyring[left])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            left = true;
-
-    for(auto& sensor: keyring['s'])
+        {
+            commandByte = (command)(commandByte | left);
+            break;
+        }
+    for(auto& sensor: keyring[down])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            down = true;
-
-    for(auto& sensor: keyring['d'])
+        {
+            commandByte = commandByte & up ? (command)(commandByte - up) : (command)(commandByte | down);
+            break;
+        }
+    for(auto& sensor: keyring[right])
         if(glfwGetKey(window, sensor)==GLFW_PRESS)
-            right = true;
+        {
+            commandByte = commandByte & left ? (command)(commandByte - left) : (command)(commandByte | right);
+            break;
+        }
 
-    if(up&&down)
-    {
-        up = false;
-        down = false;
-    }
-
-    if(left&&right)
-    {
-        left = false;
-        right = false;
-    }
-
-    if(left)
-    {
-        if(up)
-            commandBit = 'q';
-        else if(down)
-            commandBit = 'z';
-        else
-            commandBit = 'a';
-    }
-    else if(right)
-    {
-        if(up)
-            commandBit = 'e';
-        else if(down)
-            commandBit = 'c';
-        else
-            commandBit = 'd';
-    }
-    else if(up)
-        commandBit = 'w';
-    else if(down)
-        commandBit = 's';
-    else if(attack)
-        commandBit = 'x';
-
-    if(attack)
-        return std::toupper(commandBit);
-
-    return commandBit;
+    return commandByte;
 }
+
+} //namespace input

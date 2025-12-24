@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <Box2D/Box2D.h>
+// #include <Box2D/Box2D.h>
 #include "steam_api.h"
 #include "object.h"
 #include "client.h"
@@ -21,8 +21,8 @@ std::vector<std::shared_ptr<Object>> objects, objectsDynamic;
 std::vector<GLfloat> vertices;
 std::mutex mutVert;
 std::atomic<bool> gameActive;
-std::shared_ptr<Player> player;
-std::shared_ptr<Menu> menu;
+std::shared_ptr<Player> playerPtr;
+std::shared_ptr<menu::Menu> menuPtr;
 
 void threadUpdateObj();
 
@@ -70,7 +70,7 @@ int main()
         return 1;
     }
 
-    Input controls(window, "./data/config.cfg");
+    input::Input controls(window, "./data/config.cfg");
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -197,11 +197,11 @@ int main()
 
     GLuint aspRatLoc = glGetUniformLocation(programGL, "aspRat");
     bool menuClosed = false;
-    char controlBit = '\0';
+    input::command controlByte = input::command::none;
     size_t vboSize = 0;
     glm::mat2 aspectRatio = glm::mat2(1.0f);
-    player = std::make_shared<Player>(0, 0);
-    menu = std::make_shared<Menu>();
+    playerPtr = std::make_shared<Player>(0, 0);
+    menuPtr = std::make_shared<menu::Menu>();
 
     glfwSetTime(0);
 
@@ -212,31 +212,31 @@ int main()
 
         glUniformMatrix2fv(aspRatLoc, 1, GL_FALSE, &aspectRatio[0][0]);
         
-        controlBit = controls.fetch();
+        controlByte = controls.fetch();
         
         if(menuClosed)
         {
-            player->input(controlBit);
+            playerPtr->input(controlByte);
 
-            if(controlBit=='~')
+            if(controlByte=='~')
             {
-                menu->input(controlBit);
+                menuPtr->input(controlByte);
                 menuClosed = false;
             }
 
             glfwSetTime(0);
         }
-        else if(glfwGetTime()>=0.1) //Prevent inhuman menu navigation
+        else if(glfwGetTime()>0.1) //Prevent inhuman menu navigation
         {
-            switch(menu->input(controlBit))
+            switch(menuPtr->input(controlByte))
             {
-                case '~': //Leave game
+                case menu::exit: //Leave game
                     gameActive = false;
                     break;
-                case 'p': //Play game
+                case menu::play: //Play game
                     menuClosed = true;
                     break;
-                case 'f': //Toggle fullscreen
+                case menu::fullscreen: //Toggle fullscreen
                     if(glfwGetWindowMonitor(window)==NULL)
                     {
                         glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
@@ -345,10 +345,10 @@ void threadUpdateObj()
         }
     }
 
-    objects.push_back(player);
-    objects.push_back(menu);
-    objectsDynamic.push_back(player);
-    objectsDynamic.push_back(menu);
+    objects.push_back(playerPtr);
+    objects.push_back(menuPtr);
+    objectsDynamic.push_back(playerPtr);
+    objectsDynamic.push_back(menuPtr);
 
     //Main loop
     while(gameActive)
@@ -370,7 +370,7 @@ void threadUpdateObj()
         {
             std::vector<GLfloat> objVertices(obj->getVertices());
             
-            vertices.insert(vertices.end(), objVertices.begin(), objVertices.end()); //append_range()
+            vertices.insert(vertices.end(), objVertices.begin(), objVertices.end());
         }
 
         mutVert.unlock();
