@@ -11,6 +11,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+set(SDK_VER 163)
 
 add_subdirectory(src)
 
@@ -24,20 +25,20 @@ if(NOT EXISTS sdk)
 	if(NOT EXISTS steamworks_sdk.zip)
 		message(STATUS "Retrieving Steamworks SDK")
 		file(DOWNLOAD 
-			https://partner.steamgames.com/downloads/steamworks_sdk.zip 
-			steamworks_sdk.zip
+			https://partner.steamgames.com/downloads/steamworks_sdk_${SDK_VER}.zip 
+			steamworks_sdk_${SDK_VER}.zip
 			INACTIVITY_TIMEOUT 30
 			SHOW_PROGRESS
 			TLS_VERIFY ON
 		)
 	endif()
-	if(EXISTS steamworks_sdk.zip)
+	if(EXISTS steamworks_sdk_${SDK_VER}.zip)
 		message(STATUS "Extracting Steamworks SDK")
 		file(ARCHIVE_EXTRACT 
-			INPUT steamworks_sdk.zip
+			INPUT steamworks_sdk_${SDK_VER}.zip
 			DESTINATION ${CMAKE_SOURCE_DIR}
 		)
-		file(REMOVE steamworks_sdk.zip)
+		file(REMOVE steamworks_sdk_${SDK_VER}.zip)
 	else()
 		message(WARNING "SDK download failed; confirm that you are logged in to Steamworks")
 	endif()
@@ -102,11 +103,20 @@ elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL Linux)
 	set(THREADS_PREFER_PTHREAD_FLAG ON)
 	find_package(Threads REQUIRED)
 	target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+elseif(APPLE)
+	file(COPY sdk/redistributable_bin/osx/libsteam_api.dylib
+		DESTINATION ${CMAKE_SOURCE_DIR}
+	)
+	file(COPY sdk/public/steam/lib/osx/libsdkencryptedappticket.dylib
+		DESTINATION ${CMAKE_SOURCE_DIR}
+	)
 endif()
 
 option(DEV_APP_ID "Use Spacewar Steam App ID" ON)
 if(DEV_APP_ID)
 	add_compile_definitions(STEAM_APP_ID=480)
+else()
+	add_compile_definitions(STEAM_APP_ID=2957540)
 endif()
 
 option(DEDICATED_SERVER "Toggle build for dedicated server" OFF)

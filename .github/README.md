@@ -25,5 +25,7 @@ git clone https://github.com/trackpadpro/schwertspitze.git
 
 cd .\schwertspitze\
 
-.\bootstrap.bat   #scripts/bootstrap.ps1
+.\bootstrap.bat   #scripts/bootstrap.ps1 for Windows
+
+./bootstrap.sh    #Unix build script
 ```

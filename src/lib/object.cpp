@@ -67,11 +67,11 @@ void Character::update()
     }
 }
 
-void Player::input(const char& commandBit)
+void Player::input(const input::command& commandByte)
 {
     mutObj.lock();
     
-    switch(commandBit)
+    switch(commandByte)
     {
         default:
             break;
@@ -80,9 +80,12 @@ void Player::input(const char& commandBit)
     mutObj.unlock();
 }
 
+namespace menu
+{
+
 Menu::Menu()
 {
-    state = mPlay;
+    state = play;
 
     vertices = {
         -0.9f, +0.8f, 0.0f, 0.5f, 0.5f,
@@ -101,149 +104,150 @@ void Menu::update()
         
         switch(state)
         {
-            case mPlay:
+            case play:
                 vertices = {
                     -0.9f, +0.8f, 0.0f, 0.5f, 0.5f,
                     -0.95f, +0.75f, 1.0f, 0.0f, 0.5f,
                     -0.9f, +0.7f, 0.0f, 0.5f, 0.0f
                 };
                 break;
-            case mKeybinds:
+            case keybinds:
                 vertices = {
                     -0.9f, +0.75f, 0.0f, 0.5f, 0.5f,
                     -0.95f, +0.7f, 1.0f, 0.0f, 0.5f,
                     -0.9f, +0.65f, 0.0f, 0.5f, 0.0f
                 };
                 break;
-            case mKeybindSelection:
+            case keybindSelection:
                 break;
-            case mFullscreen:
+            case fullscreen:
                 vertices = {
                     -0.9f, +0.7f, 0.0f, 0.5f, 0.5f,
                     -0.95f, +0.65f, 1.0f, 0.0f, 0.5f,
                     -0.9f, +0.6f, 0.0f, 0.5f, 0.0f
                 };
                 break;
-            case mVolume:
+            case volume:
                 vertices = {
                     -0.9f, +0.65f, 0.0f, 0.5f, 0.5f,
                     -0.95f, +0.6f, 1.0f, 0.0f, 0.5f,
                     -0.9f, +0.55f, 0.0f, 0.5f, 0.0f
                 };
                 break;
-            case mVolumeSlider:
+            case volumeSlider:
                 break;
-            case mHidden:
+            case hidden:
                 vertices = {};
                 break;
-            case mExit:
+            case exit:
                 vertices = {
                     -0.9f, +0.6f, 0.0f, 0.5f, 0.5f,
                     -0.95f, +0.55f, 1.0f, 0.0f, 0.5f,
                     -0.9f, +0.5f, 0.0f, 0.5f, 0.0f
                 };
                 break;
-            case mExitConfirm:
+            case exitConfirm:
                 break;
             default:
                 break;
         }
-
+        needsUpdate = false;
         mutObj.unlock();
     }
 }
 
-char Menu::input(const char& commandBit)
+menuOption Menu::input(const input::command& commandByte)
 {
-    char menuBit = '\0';
-
     mutObj.lock();
 
     menuOption prev = state;
+    menuOption menuByte = hidden;
 
-    switch(commandBit)
-    {
-        case 'w':
-            if(state%10==0&&state>0)
+    switch(commandByte)
+{
+        case input::up:
+        {
+            if(state % 0x10 == 0 && state > play)
             {
-                state = (menuOption)(state-10);
+                state = (menuOption)(state - 0x10);
             }
-            else if(state==mPlay)
+            else if(state == play)
             {
-                state = mExit;
+                state = exit;
             }
-            else if(state==mVolumeSlider)
+            else if(state == volumeSlider)
             {
                 //volume up
             }
             break;
-        case 's':
-            if(state%10==0&&state<40)
+        }
+        case input::down:
+        {
+            if(state % 0x10 == 0 && state < exit)
             {
-                state = (menuOption)(state+10);
+                state = (menuOption)(state + 0x10);
             }
-            else if(state==mExit)
+            else if(state == exit)
             {
-                state = mPlay;
+                state = play;
             }
-            else if(state==mVolumeSlider)
+            else if(state == volumeSlider)
             {
                 //volume down
             }
             break;
-        case '~':
-            if(state%10==0&&state<99)
+        }
+        case input::escape:
+        {
+            if(state % 0x10 == 0 && state < hidden)
             {
-                state = mHidden;
+                state = hidden;
             }
-            else if(state==mHidden)
+            else if(state == hidden)
             {
-                state = mPlay;
+                state = play;
             }
             else
             {
-                state = (menuOption)(state-1);
+                state = (menuOption)(state - 1);
             }
             break;
-        case 'X':
+        }
+        case input::attack:
+        {
             switch(state)
             {
-                case mPlay:
-                    state = mHidden;
-                    menuBit = 'p';
+                case play:
+                    state = hidden;
+                    menuByte = play;
                     break;
-                case mKeybinds:
-                    state = mKeybindSelection;
+                case keybinds:
+                case volume:
+                case exit:
+                    state = (menuOption)(state + 1);
                     break;
-                case mFullscreen:
-                    menuBit = 'f';
+                case fullscreen:
+                    menuByte = fullscreen;
                     break;
-                case mVolume:
-                    state = mVolumeSlider;
+                case volumeSlider:
+                    state = volume;
                     break;
-                case mVolumeSlider:
-                    state = mVolume;
-                    break;
-                case mExit:
-                    state = mExitConfirm;
-                    break;
-                case mExitConfirm:
-                    menuBit = '~';
+                case exitConfirm:
+                    menuByte = exit;
                     break;
                 default:
                     break;
             }
+            break;
+        }
         default:
             break;
     }
 
     //Only update menu when state changes
-    if(prev==state)
-        needsUpdate = false;
-    else
-        needsUpdate = true;
-
+    needsUpdate = prev == state ? false : true;
     mutObj.unlock();
-    
-    return menuBit;
+    return menuByte;
 }
+
+} //namespace menu

@@ -29,6 +29,7 @@
 *.exe
 *.out
 *.app
+schwertspitze
 
 # VSCode
 .vscode/
@@ -48,3 +49,6 @@ build/
 # Steamworks
 sdk/
 steam_appid.txt
+
+# macOS
+.DS_store
