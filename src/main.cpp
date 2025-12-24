@@ -218,7 +218,7 @@ int main()
         {
             playerPtr->input(controlByte);
 
-            if(controlByte=='~')
+            if(controlByte == input::escape)
             {
                 menuPtr->input(controlByte);
                 menuClosed = false;
